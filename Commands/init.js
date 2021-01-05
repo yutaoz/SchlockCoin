@@ -18,12 +18,11 @@ module.exports = {
             try {
                 await client.connect(); // wait for connection to mongodb
                 const db = client.db("digicurr"); // initialize digicurr database
+
+                if (await db.collection("accounts").countDocuments({accountName: msg.author.id}) !== 0) { //check if user exists
+                    found = true;
+                }
                 
-                await db.collection("accounts").find().forEach((doc) => { // look if user is already initialized in database
-                    if (doc.accountName === msg.author.id) {
-                        found = true;
-                    }
-                });
 
             } catch (e) {
                 console.error(e);
@@ -68,12 +67,11 @@ module.exports = {
 
                 var userHash = hashGen();
                 var unique = true;
-
-                await db.collection("accounts").find().forEach((doc) => { // look if hash is unique
-                    if (doc.accountId === userHash) {
-                        unique = false;
-                    }
-                });
+                
+                //check if hash is unique
+                if (await db.collection("accounts").countDocuments({accountId: userHash}) !== 0) {
+                    unique = false;
+                }
 
                 if (unique) { // if hash is unique, insert data
                     var data = {
@@ -107,7 +105,7 @@ module.exports = {
     find().then((response) => {
         checkInit(response);
     });
-    
+
     console.info(msg.author.id);
     }
 }
