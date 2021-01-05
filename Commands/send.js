@@ -10,7 +10,7 @@ module.exports = {
 
         const client = new MongoClient(URI);
 
-        const initCheck = async (id) => {
+        async function initCheck(id) {
             let found = false;
             try {
                 await client.connect();
@@ -35,7 +35,7 @@ module.exports = {
             initCheckResult = response;
         })
 
-        const errorCheck = (response) => {
+        function errorCheck(response) {
             if ((args.length !== 2) || (msg.mentions.users.size !== 1)) { // check command syntax
                 msg.reply("Error: Expected format '>send <amount> <tagged user>'");
             } else if (!initCheckResult) {

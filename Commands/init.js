@@ -9,7 +9,7 @@ module.exports = {
     execute(msg, args) {
 
         // function to look for user in database
-        const find = async () => {
+        async function find() {
             msg.reply("Initializing user...");
 
             const client = new MongoClient(URI); // initialize mongo client
@@ -36,15 +36,16 @@ module.exports = {
         }
 
         // function to look for initializatoin
-        const checkInit = (bool) => {
+        function checkInit(bool) {
             if (bool) {
                 msg.reply("You are already initialized in the database!");
             } else {
                 initialize(msg.author.id);
             }
         }
+
         // function to generate user hash
-        const hashGen = () => {
+        function hashGen() {
             var len = Math.floor(Math.random() * 5) + 15;
             var saltString = "";
             for (var i = 0; i <= len; i++ ) {
@@ -58,7 +59,7 @@ module.exports = {
         }
         
         // function to initialize user
-        const initialize = async (id) => {
+        async function initialize(id) {
             const client = new MongoClient(URI);
 
             try {
@@ -67,7 +68,7 @@ module.exports = {
 
                 var userHash = hashGen();
                 var unique = true;
-                
+
                 //check if hash is unique
                 if (await db.collection("accounts").countDocuments({accountId: userHash}) !== 0) {
                     unique = false;
