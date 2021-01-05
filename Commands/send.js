@@ -6,11 +6,12 @@ module.exports = {
     description: "Send schlockcoin to user",
     execute(msg, args) {
 
-        const client = new MongoClient(URI);
+        
 
         async function initCheck(id, mention) { // check if both users are initialized
             let found1 = false;
             let found2 = false;
+            const client = new MongoClient(URI);
             try {
                 await client.connect();
 
@@ -25,6 +26,56 @@ module.exports = {
                 }
 
                 return [found1, found2];
+
+            } catch (e) {
+                console.error(e);
+                msg.reply(e);
+            } finally {
+                await client.close();
+            }
+        }
+
+        async function sendCoins(senderId, receiverId) {
+            const client = new MongoClient(URI);
+            try {
+                await client.connect();
+                var db = client.db("digicurr");
+                var amount = parseInt(args[0]);
+
+                var sender = await db.collection("accounts").findOne(
+                    {accountName: senderId},
+                    {accountId: 1, balance: 1}
+                )
+
+                var receiver = await db.collection("accounts").findOne(
+                    {accountName: receiverId},
+                    {accountId: 1, balance: 1}
+                )
+
+                var sendFinal = parseInt(sender.balance) - amount;
+                var recFinal = parseInt(receiver.balance) + amount;
+
+                if (amount > sender.balance) {
+                    msg.reply("Insufficient funds")
+                } else {
+                    // remove amount from sender
+                    await db.collection("accounts").updateOne(
+                        {   accountId: sender.accountId },
+                        {
+                            $set: {balance: sendFinal}
+                        }
+                    )
+
+                    await db.collection("accounts").updateOne(
+                        {   accountId: receiver.accountId },
+                        {
+                            $set: {balance: recFinal}
+                        }
+                    )
+
+                    msg.reply("Transaction successful!");
+                }
+
 
             } catch (e) {
                 console.error(e);
@@ -50,8 +101,10 @@ module.exports = {
                 msg.reply("Initialize account first with >init");
             } else if (!response[1]) {
                 msg.reply("Tagged user must initialize account first with >init");
-            } else{
-                msg.reply("success");
+            } else {
+                sendCoins(msg.author.id, msg.mentions.users.first().id).then((response) => {
+                    console.log(response);
+                });
             }
         }
 
