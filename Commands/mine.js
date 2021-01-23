@@ -1,4 +1,5 @@
 const { MongoClient } = require("mongodb");
+const crypto = require('crypto');
 const URI = process.env.DBURI;
 
 module.exports = {
@@ -6,6 +7,49 @@ module.exports = {
     description: "mine schlockcoin for user",
     execute(msg, args) {
         msg.reply("Mining...");
+
+        async function createTransaction(id, amount) {
+            const client = new MongoClient(URI);
+
+            try {
+                await client.connect();
+                var db = client.db("digicurr");
+                var recentDoc = await db.collection("transactions").find().sort({index:-1}).limit(1).next();
+
+                var receiver = await db.collection("accounts").findOne(
+                    {accountName: id},
+                    {accountId: 1, balance: 1}
+                )
+                
+
+                var hash = crypto.createHash("sha512");
+                hash.update(JSON.stringify(recentDoc), 'utf-8');
+                var finalHash = hash.digest('hex');
+                var indice = recentDoc.index + 1;
+                console.log(recentDoc.previousHash);
+
+                var data = {
+                    index: indice,
+                    sender: "MINE",
+                    receiver: receiver.accountId,
+                    amount: amount,
+                    previousHash: finalHash
+                }
+
+                db.collection("transactions").insertOne(data, function(err, res) {
+                    if (err) {
+                        throw err;
+                    }
+                });
+            } catch (e) {
+                console.error(e);
+                msg.reply(e);
+            } finally {
+                await client.close();
+            }
+
+        }
+
         async function initCheck(id) { // check if both user is initialized
             let found1 = false;
             const client = new MongoClient(URI);
@@ -47,7 +91,7 @@ module.exports = {
                         $set: {balance: sendFinal}
                     }
                 )
-
+                createTransaction(id, sendFinal - parseInt(miner.balance));
                 msg.reply(`Mined ${sendFinal - parseInt(miner.balance)} coins.`);
 
             } catch (e) {
