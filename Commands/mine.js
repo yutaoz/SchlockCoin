@@ -50,7 +50,7 @@ module.exports = {
 
         }
 
-        async function initCheck(id) { // check if both user is initialized
+        async function initCheck(id) { // check if user is initialized
             let found1 = false;
             const client = new MongoClient(URI);
             try {
