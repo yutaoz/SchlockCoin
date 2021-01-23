@@ -8,7 +8,7 @@ module.exports = {
     execute(msg, args) {
         msg.reply("Mining...");
 
-        async function createTransaction(id, amount) {
+        async function createTransaction(id, amount) { // create transaction for mined coins
             const client = new MongoClient(URI);
 
             try {
@@ -21,7 +21,7 @@ module.exports = {
                     {accountId: 1, balance: 1}
                 )
                 
-
+                // hashing previous doc
                 var hash = crypto.createHash("sha512");
                 hash.update(JSON.stringify(recentDoc), 'utf-8');
                 var finalHash = hash.digest('hex');
@@ -36,7 +36,7 @@ module.exports = {
                     previousHash: finalHash
                 }
 
-                db.collection("transactions").insertOne(data, function(err, res) {
+                db.collection("transactions").insertOne(data, function(err, res) { // insert doc
                     if (err) {
                         throw err;
                     }

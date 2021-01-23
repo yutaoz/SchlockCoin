@@ -7,13 +7,13 @@ module.exports = {
     description: "Send schlockcoin to user",
     execute(msg, args) {
 
-        async function createTransaction(senderId, receiverId, amount) {
+        async function createTransaction(senderId, receiverId, amount) { // create transaction document
             const client = new MongoClient(URI);
 
             try {
                 await client.connect();
                 var db = client.db("digicurr");
-                var recentDoc = await db.collection("transactions").find().sort({index:-1}).limit(1).next();
+                var recentDoc = await db.collection("transactions").find().sort({index:-1}).limit(1).next(); // most recent document
                 var sender = await db.collection("accounts").findOne(
                     {accountName: senderId},
                     {accountId: 1, balance: 1}
@@ -24,7 +24,7 @@ module.exports = {
                     {accountId: 1, balance: 1}
                 )
                 
-
+                // hashing previous doc
                 var hash = crypto.createHash("sha512");
                 hash.update(JSON.stringify(recentDoc), 'utf-8');
                 var finalHash = hash.digest('hex');
@@ -39,7 +39,7 @@ module.exports = {
                     previousHash: finalHash
                 }
 
-                db.collection("transactions").insertOne(data, function(err, res) {
+                db.collection("transactions").insertOne(data, function(err, res) { // insert doc
                     if (err) {
                         throw err;
                     }
@@ -80,7 +80,7 @@ module.exports = {
             }
         }
 
-        async function sendCoins(senderId, receiverId) {
+        async function sendCoins(senderId, receiverId) { // send coins to user and update database
             const client = new MongoClient(URI);
             try {
                 await client.connect();

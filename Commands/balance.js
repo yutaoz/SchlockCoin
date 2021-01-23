@@ -6,7 +6,8 @@ module.exports = {
     description: "show user balance",
     execute(msg, args) {
         msg.reply("Checking...");
-        async function checkBalance(id) {
+
+        async function checkBalance(id) { // log into db and check balance of user with id
             const client = new MongoClient(URI);
             try {
                 await client.connect();
