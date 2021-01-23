@@ -1,12 +1,57 @@
 const { MongoClient } = require("mongodb");
 const URI = process.env.DBURI;
+const crypto = require('crypto');
 
 module.exports = {
     name: ">send",
     description: "Send schlockcoin to user",
     execute(msg, args) {
 
-        
+        async function createTransaction(senderId, receiverId, amount) {
+            const client = new MongoClient(URI);
+
+            try {
+                await client.connect();
+                var db = client.db("digicurr");
+                var recentDoc = await db.collection("transactions").find().sort({index:-1}).limit(1).next();
+                var sender = await db.collection("accounts").findOne(
+                    {accountName: senderId},
+                    {accountId: 1, balance: 1}
+                )
+
+                var receiver = await db.collection("accounts").findOne(
+                    {accountName: receiverId},
+                    {accountId: 1, balance: 1}
+                )
+                
+
+                var hash = crypto.createHash("sha512");
+                hash.update(JSON.stringify(recentDoc), 'utf-8');
+                var finalHash = hash.digest('hex');
+                var indice = recentDoc.index + 1;
+                console.log(recentDoc.previousHash);
+
+                var data = {
+                    index: indice,
+                    sender: sender.accountId,
+                    receiver: receiver.accountId,
+                    amount: amount,
+                    previousHash: finalHash
+                }
+
+                db.collection("transactions").insertOne(data, function(err, res) {
+                    if (err) {
+                        throw err;
+                    }
+                });
+            } catch (e) {
+                console.error(e);
+                msg.reply(e);
+            } finally {
+                await client.close();
+            }
+
+        }
 
         async function initCheck(id, mention) { // check if both users are initialized
             let found1 = false;
@@ -72,7 +117,7 @@ module.exports = {
                             $set: {balance: recFinal}
                         }
                     )
-
+                    createTransaction(senderId, receiverId, amount);
                     msg.reply("Transaction successful!");
                 }
 

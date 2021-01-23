@@ -28,7 +28,7 @@ module.exports = {
             }
         }
 
-        async function mineCoins(id) {
+        async function mineCoins(id) { // mine coins for user with id
             const client = new MongoClient(URI);
             try {
                 await client.connect();
