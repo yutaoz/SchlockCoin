@@ -18,7 +18,7 @@ module.exports = {
                 );
 
                 if (muter.balance < 20) {
-                    msg.reply("Insufficient Funds")
+                    msg.reply("Insufficient Funds, mute costs 20 coins. >balance to check balance");
                 } else {
                     await db.collection("accounts").updateOne( // deduct funds
                         {   accountId: muter.accountId },
