@@ -79,6 +79,7 @@ module.exports = {
                         accountName: id,
                         accountId: userHash,
                         balance: 0,
+                        lastMine: 0
                     }
 
                     db.collection("accounts").insertOne(data, function(err, res) {

@@ -8,6 +8,8 @@ module.exports = {
     execute(msg, args) {
         msg.reply("Mining...");
 
+        
+
         async function createTransaction(id, amount) { // create transaction for mined coins
             const client = new MongoClient(URI);
 
@@ -103,6 +105,55 @@ module.exports = {
 
         }
 
+        async function mineCheck(id) { // limit time of mine
+            const client = new MongoClient(URI);
+
+            try{
+                await client.connect();
+                var db = client.db("digicurr");
+
+                var user = await db.collection("accounts").findOne(
+                    {accountName: id},
+                    {lastMine: 1}
+                )
+
+                var lastUse = user.lastMine;
+                var currentDate = new Date;
+                const HOUR = 1000 * 60 * 60;
+
+                if (lastUse === 0) { // newly initiated accounts
+                    await db.collection("accounts").updateOne(
+                        {   accountName: id },
+                        {
+                            $set: {lastMine: currentDate}
+                        }
+                    );
+
+                    mineCoins(id).then((response) => {
+                        console.log(response);
+                    });
+                } else if (currentDate - lastUse < 2 * HOUR) {
+                    msg.reply(`Cannot use >mine for another ${((2 * HOUR - (currentDate - lastUse)) / 1000 / 60 / 60).toFixed(2)} hours`);
+                } else {
+                    await db.collection("accounts").updateOne(
+                        {   accountName: id },
+                        {
+                            $set: {lastMine: currentDate}
+                        }
+                    );
+                    mineCoins(id).then((response) => {
+                        console.log(response);
+                    });
+                }
+            } catch (e) {
+                console.error(e);
+                msg.reply(e);
+            } finally {
+                await client.close();
+            }
+        }
+        
+
         // do error check with initCheck results
         initCheck(msg.author.id).then((response) => {
             errorCheck(response);
@@ -114,9 +165,9 @@ module.exports = {
             } else if (!response) {
                 msg.reply("Initialize account first with >init");
             } else {
-                mineCoins(msg.author.id).then((response) => {
+                mineCheck(msg.author.id).then((response) => {
                     console.log(response);
-                });
+                })
             }
         }
 
