@@ -119,7 +119,7 @@ module.exports = {
 
                 var lastUse = user.lastMine;
                 var currentDate = new Date;
-                const HOUR = 1000 * 60 * 60;
+                const HOUR = 1000 * 60 * 30;
 
                 if (lastUse === 0) { // newly initiated accounts
                     await db.collection("accounts").updateOne(
@@ -133,7 +133,7 @@ module.exports = {
                         console.log(response);
                     });
                 } else if (currentDate - lastUse < 2 * HOUR) {
-                    msg.reply(`Cannot use >mine for another ${((2 * HOUR - (currentDate - lastUse)) / 1000 / 60 / 60).toFixed(2)} hours`);
+                    msg.reply(`Cannot use >mine for another ${((2 * HOUR - (currentDate - lastUse)) / 1000 / 60).toFixed(2)} mins`);
                 } else {
                     await db.collection("accounts").updateOne(
                         {   accountName: id },
