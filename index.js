@@ -20,16 +20,60 @@ bot.on('ready', () => {
     bot.user.setActivity("Start with >init");
 });
 
-bot.on('message', msg => {
-    const args = msg.content.split(/ +/);
-    const command = args.shift().toLowerCase();
-
-    if (!bot.commands.has(command)) return;
-
+async function checkMuted(id) { // check if user is muted to delete messages
+    const client = new MongoClient(URI);
+    let muted = true;
     try {
-        bot.commands.get(command).execute(msg, args);
-    } catch (error) {
-        console.error(error);
-        msg.reply('there was an error. go cry or smth');
+        await client.connect();
+        var db = client.db("digicurr");
+
+        if (await db.collection("muted").countDocuments({accountName: id}) === 0) {
+            muted = false;
+        } else {
+            var user = await db.collection("muted").findOne(
+                {accountName: id},
+                {muteTime: 1}
+            )
+            var currentTime = new Date;
+            const minute = 1000 * 60;
+            if (currentTime - user.muteTime > minute) {
+                await db.collection("muted").deleteOne({accountName: id}, function(err, obj) {
+                    if (err) throw err;
+                    console.log("Delete successful");
+                });
+                muted = false;
+            } else {
+                muted = true;
+            }
+        }
+        return muted;
+    } catch (e) {
+        console.error(e);
+        msg.reply(e);
+    } finally {
+        await client.close();
     }
+}
+
+bot.on('message', msg => {
+
+    checkMuted(msg.author.id).then((response) => {
+        if (response) {
+            msg.delete();
+        } else {
+            const args = msg.content.split(/ +/);
+        const command = args.shift().toLowerCase();
+
+        if (!bot.commands.has(command)) return;
+
+        try {
+            bot.commands.get(command).execute(msg, args);
+        } catch (error) {
+            console.error(error);
+            msg.reply('there was an error. go cry or smth');
+        }
+
+        }
+    })
+    
 });
