@@ -36,7 +36,7 @@ async function checkMuted(id) { // check if user is muted to delete messages
             )
             var currentTime = new Date;
             const minute = 1000 * 60;
-            if (currentTime - user.muteTime > minute) {
+            if (currentTime - user.muteTime > 2 * minute) {
                 await db.collection("muted").deleteOne({accountName: id}, function(err, obj) {
                     if (err) throw err;
                     console.log("Delete successful");

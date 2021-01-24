@@ -132,8 +132,8 @@ module.exports = {
                     mineCoins(id).then((response) => {
                         console.log(response);
                     });
-                } else if (currentDate - lastUse < 2 * HOUR) {
-                    msg.reply(`Cannot use >mine for another ${((2 * HOUR - (currentDate - lastUse)) / 1000 / 60).toFixed(2)} mins`);
+                } else if (currentDate - lastUse < HOUR) {
+                    msg.reply(`Cannot use >mine for another ${((HOUR - (currentDate - lastUse)) / 1000 / 60).toFixed(2)} mins`);
                 } else {
                     await db.collection("accounts").updateOne(
                         {   accountName: id },

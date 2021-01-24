@@ -36,7 +36,7 @@ module.exports = {
                         if (err) {
                             throw err;
                         } else {
-                            msg.reply("Purchased mute for 20 SchlockCoins. User muted for 1 min");
+                            msg.reply("Purchased mute for 20 SchlockCoins. User muted for 2 mins");
                         }
                     });
                 }
